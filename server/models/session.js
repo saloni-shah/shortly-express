@@ -32,8 +32,10 @@ class Sessions extends Model {
   create(identifier) {
     var salt = utils.createSalt();
     var hash = utils.createHash(identifier, salt);
+    var userId = identifier;
 
-    return super.create.call(this, { hash, salt });
+    return super.create.call(this, { hash, salt, userId});
+    
   }
 }
 

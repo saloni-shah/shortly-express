@@ -5,6 +5,7 @@ const partials = require('express-partials');
 const bodyParser = require('body-parser');
 const Auth = require('./middleware/auth');
 const models = require('./models');
+//const users = require('./user');
 
 const app = express();
 
@@ -21,6 +22,44 @@ app.get('/',
 (req, res) => {
   res.render('index');
 });
+
+app.get('/signup', 
+(req, res) => {
+  res.render('signup');
+});
+
+app.post('/signup', 
+(req, res) => {
+  models.Users.create({username: req.body['username'], password: req.body['password']});
+  res.redirect('/');
+});
+
+app.get('/login',
+(req, res) => {
+  res.render('login');
+});
+
+app.post('/login',
+(req, res, next) => {
+  models.Users.get({'username': req.body['username']})
+    .then(function(data) {
+      var status = models.Users.compare(req.body['password'], data['password'], data['salt']);
+      if (status) {
+        next();
+      }
+    });
+
+});
+
+app.use(Auth.createSession);
+
+
+
+
+
+
+
+
 
 app.get('/create', 
 (req, res) => {
