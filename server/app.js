@@ -5,6 +5,7 @@ const partials = require('express-partials');
 const bodyParser = require('body-parser');
 const Auth = require('./middleware/auth');
 const models = require('./models');
+const createCookies = require('./middleware/cookieParser');
 //const users = require('./user');
 
 const app = express();
@@ -30,8 +31,15 @@ app.get('/signup',
 
 app.post('/signup', 
 (req, res) => {
-  models.Users.create({username: req.body['username'], password: req.body['password']});
-  res.redirect('/');
+  models.Users.get({username: req.body['username']})
+    .then(function(data) {
+      if (data) {
+        res.redirect('/signup');
+      } else {
+        models.Users.create({username: req.body['username'], password: req.body['password']});
+        res.redirect('/');
+      }
+    });
 });
 
 app.get('/login',
@@ -39,19 +47,23 @@ app.get('/login',
   res.render('login');
 });
 
-app.post('/login',
-(req, res, next) => {
-  models.Users.get({'username': req.body['username']})
-    .then(function(data) {
-      var status = models.Users.compare(req.body['password'], data['password'], data['salt']);
-      if (status) {
-        next();
-      }
-    });
+// app.post('/login',
+// (req, res, next) => {
+//   models.Users.get({'username': req.body['username']})
+//     .then(function(data) {
+//       var status = models.Users.compare(req.body['password'], data['password'], data['salt']);
+//       if (status) {
+//         next();
+//       }
+//     });
 
-});
+// });
 
-app.use(Auth.createSession);
+
+app.post('/login', Auth.checkUser, Auth.createSession, createCookies.createCookies);
+
+
+// app.use(Auth.createSession);
 
 
 
